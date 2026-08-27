@@ -1,0 +1,8 @@
+{
+  "name": "Remix CARE Control System",
+  "description": "Painel de controle ambiental e monitoramento com ESP32 para temperatura, umidade e controle de atuadores.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
