@@ -6,13 +6,38 @@ export interface ActuatorState {
   humidifier: boolean;
 }
 
+export interface Esp32Settings {
+  target_temp_min: number;
+  target_temp_max: number;
+  max_temp: number;
+  target_humidity_min: number;
+  target_humidity_max: number;
+  peltier_pwm: number;
+  humidifier_pwm: number;
+}
+
+export interface Esp32Status extends Esp32Settings {
+  temperature: number;
+  humidity: number;
+  automatic: boolean;
+  peltier: boolean;
+  humidifier: boolean;
+  heater: boolean;
+  sensor_ok?: boolean;
+}
+
 export interface TelemetryData {
   temperature: number;
   humidity: number;
   targetTemperature: number;
   targetHumidity: number;
-  tempTolerance: number;
-  humidityTolerance: number;
+  targetTemperatureMin: number;
+  targetTemperatureMax: number;
+  maxTemperature: number;
+  targetHumidityMin: number;
+  targetHumidityMax: number;
+  peltierPwm: number;
+  humidifierPwm: number;
   timestamp: Date;
 }
 
@@ -23,7 +48,7 @@ export interface HistoryRecord {
   humidity: number;
   targetTemperature: number;
   targetHumidity: number;
-  peltier: number; // 1 or 0 for chart
+  peltier: number;
   resistance: number;
   humidifier: number;
 }
