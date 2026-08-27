@@ -1,111 +1,127 @@
-import { Esp32Status, Esp32Settings } from '../types';
+const ESP32_BASE_URL = 'http://192.168.4.1';
 
-const ESP32_BASE_URL =
-  import.meta.env.VITE_ESP32_BASE_URL || 'http://192.168.1.104';
+export interface Esp32Status {
+  temperature: number | null;
+  humidity: number | null;
+  sensor_ok: boolean;
 
-const REQUEST_TIMEOUT_MS = 2500;
+  automatic: boolean;
+
+  peltier: boolean;
+  humidifier: boolean;
+  heater: boolean;
+
+  target_temp_min: number;
+  target_temp_max: number;
+  max_temp: number;
+
+  target_humidity_min: number;
+  target_humidity_max: number;
+
+  peltier_pwm: number;
+  humidifier_pwm: number;
+}
 
 async function request<T>(
-  path: string,
-  options: RequestInit = {},
+  endpoint: string,
+  options?: RequestInit,
 ): Promise<T> {
   const controller = new AbortController();
 
   const timeout = window.setTimeout(() => {
     controller.abort();
-  }, REQUEST_TIMEOUT_MS);
+  }, 3000);
 
   try {
-    const response = await fetch(`${ESP32_BASE_URL}${path}`, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(options.headers || {}),
+    const response = await fetch(
+      `${ESP32_BASE_URL}${endpoint}`,
+      {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options?.headers || {}),
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       throw new Error(
-        `ESP32 HTTP ${response.status} ${response.statusText}`,
+        `ESP32 HTTP ${response.status}`,
       );
     }
 
-    return (await response.json()) as T;
+    return await response.json();
   } finally {
     window.clearTimeout(timeout);
   }
 }
 
-async function postJson<TResponse = unknown>(
-  path: string,
-  body: unknown,
-): Promise<TResponse> {
-  return request<TResponse>(path, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
-}
-
-export async function getEsp32Status(): Promise<Esp32Status> {
+export async function getStatus(): Promise<Esp32Status> {
   return request<Esp32Status>('/api/status');
 }
 
-export async function setAutomaticMode(
+export async function setMode(
   automatic: boolean,
-): Promise<Esp32Status> {
-  const response = await postJson<{ status?: Esp32Status }>(
-    '/api/mode',
-    { automatic },
-  );
-
-  return response.status || getEsp32Status();
+) {
+  return request('/api/mode', {
+    method: 'POST',
+    body: JSON.stringify({
+      automatic,
+    }),
+  });
 }
 
 export async function setPeltier(
   on: boolean,
-): Promise<Esp32Status> {
-  const response = await postJson<{ status?: Esp32Status }>(
-    '/api/peltier',
-    { on },
-  );
-
-  return response.status || getEsp32Status();
+) {
+  return request('/api/peltier', {
+    method: 'POST',
+    body: JSON.stringify({
+      on,
+    }),
+  });
 }
 
 export async function setHumidifier(
   on: boolean,
-): Promise<Esp32Status> {
-  const response = await postJson<{ status?: Esp32Status }>(
-    '/api/humidifier',
-    { on },
-  );
-
-  return response.status || getEsp32Status();
+) {
+  return request('/api/humidifier', {
+    method: 'POST',
+    body: JSON.stringify({
+      on,
+    }),
+  });
 }
 
 export async function setHeater(
   on: boolean,
-): Promise<Esp32Status> {
-  const response = await postJson<{ status?: Esp32Status }>(
-    '/api/heater',
-    { on },
-  );
-
-  return response.status || getEsp32Status();
+) {
+  return request('/api/heater', {
+    method: 'POST',
+    body: JSON.stringify({
+      on,
+    }),
+  });
 }
 
-export async function updateEsp32Settings(
+export interface Esp32Settings {
+  target_temp_min: number;
+  target_temp_max: number;
+  max_temp: number;
+
+  target_humidity_min: number;
+  target_humidity_max: number;
+
+  peltier_pwm: number;
+  humidifier_pwm: number;
+}
+
+export async function setSettings(
   settings: Esp32Settings,
-): Promise<Esp32Status> {
-  const response = await postJson<{ status?: Esp32Status }>(
-    '/api/settings',
-    settings,
-  );
-
-  return response.status || getEsp32Status();
-}
-
-export function getEsp32BaseUrl(): string {
-  return ESP32_BASE_URL;
+) {
+  return request('/api/settings', {
+    method: 'POST',
+    body: JSON.stringify(settings),
+  });
 }
