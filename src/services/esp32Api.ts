@@ -1,5 +1,5 @@
 ```ts
-const ESP32_BASE_URL = "http://192.168.4.1";
+const ESP32_BASE_URL = 'http://192.168.4.1';
 
 export interface Esp32Status {
   temperature: number | null;
@@ -60,17 +60,19 @@ async function request<T>(
       ...options,
 
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         ...(options?.headers || {}),
       },
     },
   );
 
   if (!response.ok) {
-    let message = `Erro HTTP ${response.status}`;
+    let message =
+      `Erro HTTP ${response.status}`;
 
     try {
-      const data = await response.json();
+      const data =
+        await response.json();
 
       if (data?.error) {
         message = data.error;
@@ -91,7 +93,9 @@ async function request<T>(
 // ======================================================
 
 export async function getEsp32Status(): Promise<Esp32Status> {
-  return request<Esp32Status>("/api/status");
+  return request<Esp32Status>(
+    '/api/status',
+  );
 }
 
 
@@ -102,16 +106,17 @@ export async function getEsp32Status(): Promise<Esp32Status> {
 export async function setAutomaticMode(
   automatic: boolean,
 ): Promise<Esp32Status> {
-  const response = await request<{
-    ok: boolean;
-    status: Esp32Status;
-  }>("/api/mode", {
-    method: "POST",
+  const response =
+    await request<{
+      ok: boolean;
+      status: Esp32Status;
+    }>('/api/mode', {
+      method: 'POST',
 
-    body: JSON.stringify({
-      automatic,
-    }),
-  });
+      body: JSON.stringify({
+        automatic,
+      }),
+    });
 
   return response.status;
 }
@@ -124,16 +129,17 @@ export async function setAutomaticMode(
 export async function setPeltier(
   on: boolean,
 ): Promise<Esp32Status> {
-  const response = await request<{
-    ok: boolean;
-    status: Esp32Status;
-  }>("/api/peltier", {
-    method: "POST",
+  const response =
+    await request<{
+      ok: boolean;
+      status: Esp32Status;
+    }>('/api/peltier', {
+      method: 'POST',
 
-    body: JSON.stringify({
-      on,
-    }),
-  });
+      body: JSON.stringify({
+        on,
+      }),
+    });
 
   return response.status;
 }
@@ -146,16 +152,17 @@ export async function setPeltier(
 export async function setHumidifier(
   on: boolean,
 ): Promise<Esp32Status> {
-  const response = await request<{
-    ok: boolean;
-    status: Esp32Status;
-  }>("/api/humidifier", {
-    method: "POST",
+  const response =
+    await request<{
+      ok: boolean;
+      status: Esp32Status;
+    }>('/api/humidifier', {
+      method: 'POST',
 
-    body: JSON.stringify({
-      on,
-    }),
-  });
+      body: JSON.stringify({
+        on,
+      }),
+    });
 
   return response.status;
 }
@@ -168,16 +175,17 @@ export async function setHumidifier(
 export async function setHeater(
   on: boolean,
 ): Promise<Esp32Status> {
-  const response = await request<{
-    ok: boolean;
-    status: Esp32Status;
-  }>("/api/heater", {
-    method: "POST",
+  const response =
+    await request<{
+      ok: boolean;
+      status: Esp32Status;
+    }>('/api/heater', {
+      method: 'POST',
 
-    body: JSON.stringify({
-      on,
-    }),
-  });
+      body: JSON.stringify({
+        on,
+      }),
+    });
 
   return response.status;
 }
@@ -190,14 +198,15 @@ export async function setHeater(
 export async function updateEsp32Settings(
   settings: Esp32Settings,
 ): Promise<Esp32Status> {
-  const response = await request<{
-    ok: boolean;
-    status: Esp32Status;
-  }>("/api/settings", {
-    method: "POST",
+  const response =
+    await request<{
+      ok: boolean;
+      status: Esp32Status;
+    }>('/api/settings', {
+      method: 'POST',
 
-    body: JSON.stringify(settings),
-  });
+      body: JSON.stringify(settings),
+    });
 
   return response.status;
 }
@@ -210,7 +219,6 @@ export async function updateEsp32Settings(
 export async function checkEsp32Connection(): Promise<boolean> {
   try {
     await getEsp32Status();
-
     return true;
   } catch {
     return false;
