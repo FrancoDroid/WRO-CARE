@@ -32,7 +32,14 @@ import {
   getEsp32BaseUrl,
 } from './services/esp32Api';
 
-function statusToTelemetry(status: Esp32Status): TelemetryData {
+
+// ======================================================
+// CONVERSÃO DO STATUS PARA TELEMETRIA
+// ======================================================
+
+function statusToTelemetry(
+  status: Esp32Status,
+): TelemetryData {
   return {
     temperature: status.temperature ?? 0,
     humidity: status.humidity ?? 0,
@@ -43,21 +50,40 @@ function statusToTelemetry(status: Esp32Status): TelemetryData {
     targetHumidity:
       (status.target_humidity_min + status.target_humidity_max) / 2,
 
-    targetTemperatureMin: status.target_temp_min,
-    targetTemperatureMax: status.target_temp_max,
-    maxTemperature: status.max_temp,
+    targetTemperatureMin:
+      status.target_temp_min,
 
-    targetHumidityMin: status.target_humidity_min,
-    targetHumidityMax: status.target_humidity_max,
+    targetTemperatureMax:
+      status.target_temp_max,
 
-    peltierPwm: status.peltier_pwm,
-    humidifierPwm: status.humidifier_pwm,
+    maxTemperature:
+      status.max_temp,
 
-    timestamp: new Date(),
+    targetHumidityMin:
+      status.target_humidity_min,
+
+    targetHumidityMax:
+      status.target_humidity_max,
+
+    peltierPwm:
+      status.peltier_pwm,
+
+    humidifierPwm:
+      status.humidifier_pwm,
+
+    timestamp:
+      new Date(),
   };
 }
 
-function statusToActuators(status: Esp32Status): ActuatorState {
+
+// ======================================================
+// CONVERSÃO DOS ATUADORES
+// ======================================================
+
+function statusToActuators(
+  status: Esp32Status,
+): ActuatorState {
   return {
     peltier: status.peltier,
     resistance: status.heater,
@@ -65,24 +91,53 @@ function statusToActuators(status: Esp32Status): ActuatorState {
   };
 }
 
+
+// ======================================================
+// APP
+// ======================================================
+
 export default function App() {
-  const [telemetry, setTelemetry] = useState<TelemetryData>({
-    temperature: 0,
-    humidity: 0,
-    targetTemperature: 19,
-    targetHumidity: 50,
-    targetTemperatureMin: 18,
-    targetTemperatureMax: 20,
-    maxTemperature: 24,
-    targetHumidityMin: 40,
-    targetHumidityMax: 60,
-    peltierPwm: 200,
-    humidifierPwm: 180,
-    timestamp: new Date(0),
-  });
+
+  // ====================================================
+  // TELEMETRIA
+  // ====================================================
+
+  const [telemetry, setTelemetry] =
+    useState<TelemetryData>({
+      temperature: 0,
+      humidity: 0,
+
+      targetTemperature: 19,
+      targetHumidity: 50,
+
+      targetTemperatureMin: 18,
+      targetTemperatureMax: 20,
+
+      maxTemperature: 24,
+
+      targetHumidityMin: 40,
+      targetHumidityMax: 60,
+
+      peltierPwm: 200,
+      humidifierPwm: 180,
+
+      timestamp: new Date(0),
+    });
+
+
+  // ====================================================
+  // MODO DE OPERAÇÃO
+  // ====================================================
 
   const [mode, setMode] =
-    useState<OperationMode>('AUTOMATICO');
+    useState<OperationMode>(
+      'AUTOMATICO',
+    );
+
+
+  // ====================================================
+  // ATUADORES
+  // ====================================================
 
   const [actuators, setActuators] =
     useState<ActuatorState>({
@@ -91,30 +146,62 @@ export default function App() {
       humidifier: false,
     });
 
+
+  // ====================================================
+  // CONEXÃO
+  // ====================================================
+
   const [connected, setConnected] =
     useState(false);
+
+
+  // ====================================================
+  // SENSOR
+  // ====================================================
 
   const [sensorOk, setSensorOk] =
     useState(true);
 
+
+  // ====================================================
+  // ÚLTIMA ATUALIZAÇÃO
+  // ====================================================
+
   const [lastUpdateText, setLastUpdateText] =
-    useState('Aguardando ESP32');
+    useState(
+      'Aguardando ESP32',
+    );
+
+
+  // ====================================================
+  // HISTÓRICO
+  // ====================================================
 
   const [history, setHistory] =
     useState<HistoryRecord[]>([]);
+
+
+  // ====================================================
+  // MÉTRICAS DO ESP32
+  // ====================================================
 
   const [metrics, setMetrics] =
     useState<Esp32Metrics>({
       connected: false,
 
-      ip: getEsp32BaseUrl()
-        .replace(/^https?:\/\//, '')
-        .replace(/\/$/, ''),
+      ip:
+        getEsp32BaseUrl()
+          .replace(/^https?:\/\//, '')
+          .replace(/\/$/, ''),
 
       rssi: 0,
+
       freeHeap: 0,
+
       uptimeSeconds: 0,
+
       voltage: 0,
+
       firmwareVersion: 'N/A',
 
       gpioPins: {
@@ -126,8 +213,18 @@ export default function App() {
       },
     });
 
+
+  // ====================================================
+  // LOGS
+  // ====================================================
+
   const [logs, setLogs] =
     useState<SystemLog[]>([]);
+
+
+  // ====================================================
+  // CONTROLE DOS MODAIS
+  // ====================================================
 
   const [historyOpen, setHistoryOpen] =
     useState(false);
@@ -141,11 +238,17 @@ export default function App() {
   const [emergencyModalOpen, setEmergencyModalOpen] =
     useState(false);
 
+
+  // ====================================================
+  // ADICIONAR LOG
+  // ====================================================
+
   const addLog = useCallback(
     (
       level: SystemLog['level'],
       message: string,
     ) => {
+
       const timestamp =
         new Date().toLocaleTimeString(
           'pt-BR',
@@ -156,21 +259,36 @@ export default function App() {
           },
         );
 
-      setLogs((previous) => [
-        {
-          id: `${Date.now()}-${Math.random()}`,
-          timestamp,
-          level,
-          message,
-        },
-        ...previous.slice(0, 49),
-      ]);
+      setLogs(
+        (previous) => [
+          {
+            id:
+              String(Date.now()) +
+              '-' +
+              String(Math.random()),
+
+            timestamp,
+
+            level,
+
+            message,
+          },
+
+          ...previous.slice(0, 49),
+        ],
+      );
     },
     [],
   );
 
+
+  // ====================================================
+  // APLICAR STATUS DO ESP32
+  // ====================================================
+
   const applyStatus = useCallback(
     (status: Esp32Status) => {
+
       setConnected(true);
 
       setSensorOk(
@@ -190,95 +308,142 @@ export default function App() {
       const nextTelemetry =
         statusToTelemetry(status);
 
-      setTelemetry(nextTelemetry);
+      setTelemetry(
+        nextTelemetry,
+      );
 
-      const now = Date.now();
 
-      setHistory((previous) => [
-        ...previous.slice(-59),
+      // -----------------------------------------------
+      // HISTÓRICO
+      // -----------------------------------------------
 
-        {
-          time:
-            new Date(now).toLocaleTimeString(
-              'pt-BR',
-              {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              },
-            ),
+      const now =
+        Date.now();
 
-          timestampMs: now,
+      const temperature =
+        status.temperature == null
+          ? 0
+          : Number(
+              status.temperature.toFixed(1),
+            );
 
-          temperature:
-            status.temperature == null
-              ? 0
-              : Number(
-                  status.temperature.toFixed(1),
-                ),
+      const humidity =
+        status.humidity == null
+          ? 0
+          : Number(
+              status.humidity.toFixed(1),
+            );
 
-          humidity:
-            status.humidity == null
-              ? 0
-              : Number(
-                  status.humidity.toFixed(1),
-                ),
+      setHistory(
+        (previous) => [
+          ...previous.slice(-59),
 
-          targetTemperature:
-            (
-              status.target_temp_min +
-              status.target_temp_max
-            ) / 2,
+          {
+            time:
+              new Date(now).toLocaleTimeString(
+                'pt-BR',
+                {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                },
+              ),
 
-          targetHumidity:
-            (
-              status.target_humidity_min +
-              status.target_humidity_max
-            ) / 2,
+            timestampMs:
+              now,
 
-          peltier:
-            status.peltier ? 1 : 0,
+            temperature,
 
-          resistance:
-            status.heater ? 1 : 0,
+            humidity,
 
-          humidifier:
-            status.humidifier ? 1 : 0,
-        },
-      ]);
+            targetTemperature:
+              (
+                status.target_temp_min +
+                status.target_temp_max
+              ) / 2,
 
-      setMetrics((previous) => ({
-        ...previous,
-        connected: true,
-      }));
+            targetHumidity:
+              (
+                status.target_humidity_min +
+                status.target_humidity_max
+              ) / 2,
+
+            peltier:
+              status.peltier
+                ? 1
+                : 0,
+
+            resistance:
+              status.heater
+                ? 1
+                : 0,
+
+            humidifier:
+              status.humidifier
+                ? 1
+                : 0,
+          },
+        ],
+      );
+
+
+      // -----------------------------------------------
+      // MÉTRICAS
+      // -----------------------------------------------
+
+      setMetrics(
+        (previous) => ({
+          ...previous,
+          connected: true,
+        }),
+      );
     },
     [],
   );
 
+
+  // ====================================================
+  // BUSCAR STATUS DO ESP32
+  // ====================================================
+
   const fetchStatus = useCallback(
     async () => {
+
       try {
+
         const status =
           await getEsp32Status();
 
         applyStatus(status);
+
       } catch {
+
         setConnected(false);
 
-        setMetrics((previous) => ({
-          ...previous,
-          connected: false,
-        }));
+        setMetrics(
+          (previous) => ({
+            ...previous,
+            connected: false,
+          }),
+        );
 
         setLastUpdateText(
           'ESP32 offline',
         );
       }
     },
-    [applyStatus],
+    [
+      applyStatus,
+    ],
   );
 
+
+  // ====================================================
+  // ATUALIZAÇÃO AUTOMÁTICA
+  // ====================================================
+
   useEffect(() => {
+
     fetchStatus();
 
     const interval =
@@ -288,63 +453,102 @@ export default function App() {
       );
 
     return () =>
-      window.clearInterval(interval);
-  }, [fetchStatus]);
+      window.clearInterval(
+        interval,
+      );
+
+  }, [
+    fetchStatus,
+  ]);
+
+
+  // ====================================================
+  // TEXTO DA ÚLTIMA ATUALIZAÇÃO
+  // ====================================================
 
   useEffect(() => {
+
     const timer =
-      window.setInterval(() => {
-        if (!connected) {
-          setLastUpdateText(
-            'ESP32 offline',
-          );
-          return;
-        }
+      window.setInterval(
+        () => {
 
-        const diff =
-          Math.floor(
-            (
-              Date.now() -
-              telemetry.timestamp.getTime()
-            ) / 1000,
-          );
+          if (!connected) {
 
-        if (diff < 3) {
-          setLastUpdateText('Agora');
-        } else if (diff < 60) {
-          setLastUpdateText(
-            `há ${diff}s`,
-          );
-        } else {
-          setLastUpdateText(
-            telemetry.timestamp.toLocaleTimeString(
-              'pt-BR',
-              {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              },
-            ),
-          );
-        }
-      }, 1000);
+            setLastUpdateText(
+              'ESP32 offline',
+            );
+
+            return;
+          }
+
+          const diff =
+            Math.floor(
+              (
+                Date.now() -
+                telemetry.timestamp.getTime()
+              ) / 1000,
+            );
+
+
+          if (diff < 3) {
+
+            setLastUpdateText(
+              'Agora',
+            );
+
+          } else if (diff < 60) {
+
+            setLastUpdateText(
+              'há ' +
+              String(diff) +
+              's',
+            );
+
+          } else {
+
+            setLastUpdateText(
+              telemetry.timestamp.toLocaleTimeString(
+                'pt-BR',
+                {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                },
+              ),
+            );
+          }
+
+        },
+
+        1000,
+      );
 
     return () =>
-      window.clearInterval(timer);
+      window.clearInterval(
+        timer,
+      );
+
   }, [
     connected,
     telemetry.timestamp,
   ]);
 
+
+  // ====================================================
+  // ALTERAR MODO
+  // ====================================================
+
   const handleSelectMode =
     async (
       newMode: OperationMode,
     ) => {
+
       if (!connected) {
         return;
       }
 
       try {
+
         await setAutomaticMode(
           newMode === 'AUTOMATICO',
         );
@@ -353,9 +557,13 @@ export default function App() {
 
         addLog(
           'ACTION',
-          `Modo alterado para ${newMode}.`,
+          'Modo alterado para ' +
+          newMode +
+          '.',
         );
+
       } catch {
+
         addLog(
           'ERROR',
           'Não foi possível alterar o modo no ESP32.',
@@ -365,10 +573,16 @@ export default function App() {
       }
     };
 
+
+  // ====================================================
+  // LIGAR / DESLIGAR ATUADORES
+  // ====================================================
+
   const handleToggleActuator =
     async (
       actuator: keyof ActuatorState,
     ) => {
+
       if (
         mode === 'AUTOMATICO' ||
         !connected ||
@@ -381,20 +595,38 @@ export default function App() {
         !actuators[actuator];
 
       try {
-        if (actuator === 'peltier') {
-          await setPeltier(desired);
+
+        if (
+          actuator === 'peltier'
+        ) {
+
+          await setPeltier(
+            desired,
+          );
         }
 
-        if (actuator === 'humidifier') {
-          await setHumidifier(desired);
+        if (
+          actuator === 'humidifier'
+        ) {
+
+          await setHumidifier(
+            desired,
+          );
         }
 
-        if (actuator === 'resistance') {
-          await setHeater(desired);
+        if (
+          actuator === 'resistance'
+        ) {
+
+          await setHeater(
+            desired,
+          );
         }
 
         await fetchStatus();
+
       } catch {
+
         addLog(
           'ERROR',
           'Falha ao enviar comando ao ESP32.',
@@ -404,19 +636,28 @@ export default function App() {
       }
     };
 
+
+  // ====================================================
+  // SALVAR CONFIGURAÇÕES
+  // ====================================================
+
   const handleSaveSettings =
     async (
       settings: Esp32Settings,
     ) => {
+
       if (!connected) {
+
         addLog(
           'ERROR',
           'ESP32 offline. Não foi possível salvar.',
         );
+
         return;
       }
 
       try {
+
         await updateEsp32Settings(
           settings,
         );
@@ -427,7 +668,9 @@ export default function App() {
           'ACTION',
           'Parâmetros enviados ao ESP32.',
         );
+
       } catch {
+
         addLog(
           'ERROR',
           'Falha ao salvar parâmetros no ESP32.',
@@ -437,21 +680,34 @@ export default function App() {
       }
     };
 
+
+  // ====================================================
+  // PARADA DE EMERGÊNCIA
+  // ====================================================
+
   const handleEmergencyStop =
     async () => {
-      setEmergencyModalOpen(true);
+
+      setEmergencyModalOpen(
+        true,
+      );
 
       if (!connected) {
+
         addLog(
           'ERROR',
           'ESP32 offline. Não foi possível enviar parada.',
         );
+
         return;
       }
 
       try {
+
         await setPeltier(false);
+
         await setHumidifier(false);
+
         await setHeater(false);
 
         await setAutomaticMode(false);
@@ -462,7 +718,9 @@ export default function App() {
           'ERROR',
           'Todos os atuadores foram desligados.',
         );
+
       } catch {
+
         addLog(
           'ERROR',
           'Falha ao executar parada de emergência.',
@@ -470,64 +728,99 @@ export default function App() {
       }
     };
 
+
+  // ====================================================
+  // RESET DA EMERGÊNCIA
+  // ====================================================
+
   const handleResetEmergency =
     () => {
-      setEmergencyModalOpen(false);
+
+      setEmergencyModalOpen(
+        false,
+      );
+
       fetchStatus();
     };
 
+
+  // ====================================================
+  // INTERFACE
+  // ====================================================
+
   return (
+
     <div className="bg-[#f7f9fb] text-[#191c1e] min-h-screen flex flex-col font-sans selection:bg-[#d8e2ff] selection:text-[#001a42]">
 
       <Header
         connected={connected}
-        onRefreshConnection={fetchStatus}
+
+        onRefreshConnection={
+          fetchStatus
+        }
+
         onOpenHistory={() =>
           setHistoryOpen(true)
         }
+
         onOpenSettings={() =>
           setSettingsOpen(true)
         }
+
         onOpenDiagnostics={() =>
           setDiagnosticsOpen(true)
         }
       />
+
 
       <main className="flex-grow px-4 md:px-8 pt-4 pb-36 max-w-4xl mx-auto w-full">
 
         <div className="space-y-6">
 
           <div className="flex justify-end items-center">
+
             <span
               id="lbl-update-time"
               className="text-sm font-normal text-[#45464d]"
             >
               Atualização: {lastUpdateText}
             </span>
+
           </div>
+
 
           <TelemetryCards
             telemetry={telemetry}
+
             onEditTargets={() =>
               setSettingsOpen(true)
             }
           />
 
+
           <OperationModeCard
             mode={mode}
-            onSelectMode={handleSelectMode}
+
+            onSelectMode={
+              handleSelectMode
+            }
+
             disabled={
               !connected ||
               !sensorOk
             }
           />
 
+
           <ActuatorsGrid
             actuators={actuators}
+
             mode={mode}
+
             onToggleActuator={
               handleToggleActuator
             }
+
             disabled={
               !connected ||
               !sensorOk
@@ -535,37 +828,57 @@ export default function App() {
           />
 
         </div>
+
       </main>
+
 
       <EmergencyFooter
         onEmergencyStop={
           handleEmergencyStop
         }
-        disabled={!connected}
+
+        disabled={
+          !connected
+        }
       />
 
+
       <TelemetryHistoryModal
-        isOpen={historyOpen}
+        isOpen={
+          historyOpen
+        }
+
         onClose={() =>
           setHistoryOpen(false)
         }
-        history={history}
+
+        history={
+          history
+        }
+
         targetTemp={
           telemetry.targetTemperature
         }
+
         targetHum={
           telemetry.targetHumidity
         }
+
         onClearHistory={() =>
           setHistory([])
         }
       />
 
+
       <SettingsModal
-        isOpen={settingsOpen}
+        isOpen={
+          settingsOpen
+        }
+
         onClose={() =>
           setSettingsOpen(false)
         }
+
         settings={{
           target_temp_min:
             telemetry.targetTemperatureMin,
@@ -588,20 +901,37 @@ export default function App() {
           humidifier_pwm:
             telemetry.humidifierPwm,
         }}
-        onSave={handleSaveSettings}
+
+        onSave={
+          handleSaveSettings
+        }
       />
 
+
       <Esp32DiagnosticsModal
-        isOpen={diagnosticsOpen}
+        isOpen={
+          diagnosticsOpen
+        }
+
         onClose={() =>
           setDiagnosticsOpen(false)
         }
-        metrics={metrics}
-        logs={logs}
+
+        metrics={
+          metrics
+        }
+
+        logs={
+          logs
+        }
       />
 
+
       <EmergencyAlertModal
-        isOpen={emergencyModalOpen}
+        isOpen={
+          emergencyModalOpen
+        }
+
         onReset={
           handleResetEmergency
         }
